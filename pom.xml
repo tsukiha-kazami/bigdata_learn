@@ -12,6 +12,8 @@
   <modules>
     <module>hbase_study</module>
     <module>hadoop_study</module>
+    <module>hbase_hadoop</module>
+    <module>flume_learn</module>
   </modules>
 
 </project>
