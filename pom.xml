@@ -14,6 +14,10 @@
     <module>hadoop_study</module>
     <module>hbase_hadoop</module>
     <module>flume_learn</module>
+    <module>data_warehouse</module>
+    <module>zookeeper</module>
+    <module>scala_learning</module>
+    <module>sparkCore</module>
   </modules>
 
 </project>
