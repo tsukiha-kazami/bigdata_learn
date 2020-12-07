@@ -17,7 +17,7 @@
     <module>data_warehouse</module>
     <module>zookeeper</module>
     <module>scala_learning</module>
-    <module>sparkCore</module>
+    <module>kafka_learning</module>
   </modules>
 
 </project>

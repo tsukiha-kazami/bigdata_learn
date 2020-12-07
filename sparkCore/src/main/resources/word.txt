@@ -1,5 +1,0 @@
-hello,spark
-hello,scala,hadoop
-hello,hdfs
-hello,spark,hadoop
-hello

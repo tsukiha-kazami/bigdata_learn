@@ -12,19 +12,19 @@ import java.util.concurrent.CountDownLatch;
 
 public class DistributedLock implements Watcher {
     //定义会话的超时时间
-    private final static int SESSION_TIME = 30000;
+    private final static int SESSION_TIME = 300000;
 
     private int threadId;
     private ZooKeeper zk = null;
     private String selfPath;
     private String waitPath;
     private String LOG_PREFIX_OF_THREAD;
-    private static final int SESSION_TIMEOUT = 10000;
+    private static final int SESSION_TIMEOUT = 100000;
     private static final String GROUP_PATH = "/disLocks";
     private static final String SUB_PATH = "/disLocks/sub";
     private static final String CONNECTION_STRING = "node01:2181,node02:2181,node03:2181";
 
-    private static final int THREAD_NUM = 10;
+    private static final int THREAD_NUM = 3;
 
     //确保连接zk成功；
     private CountDownLatch connectedSemaphore = new CountDownLatch(1);
@@ -43,6 +43,7 @@ public class DistributedLock implements Watcher {
     //程序入口
     public static void main(String[] args) {
         //多个线程中zk是否是同一个对象？
+        //日志对象
         BasicConfigurator.configure();
         for (int i = 0; i < THREAD_NUM; i++) {
             final int threadId = i + 1;
@@ -56,13 +57,14 @@ public class DistributedLock implements Watcher {
                         System.out.println("3、在createConnection中，线程等待结束，向下执行");
                         //GROUP_PATH不存在的话，由一个线程创建即可；
                         synchronized (threadSemaphore) {
-                            dc.createPath(GROUP_PATH, "该节点由线程" + threadId + "创建", true);
+                            dc.createSuperPath(GROUP_PATH, "该节点由线程" + threadId + "创建", true);
                         }
                         //获得锁
                         dc.getLock();
                     } catch (Exception e) {
                         LOG.error("【第" + threadId + "个线程】 抛出的异常：");
                         e.printStackTrace();
+                        threadSemaphore.countDown();
                     }
                 }
             }.start();
@@ -91,25 +93,6 @@ public class DistributedLock implements Watcher {
     }
 
     /**
-     * 创建节点
-     *
-     * @param path 节点path
-     * @param data 初始数据内容
-     * @return
-     */
-    public boolean createPath(String path, String data, boolean needWatch) throws KeeperException, InterruptedException {
-        if (zk.exists(path, needWatch) == null) {
-            LOG.warn(LOG_PREFIX_OF_THREAD + "节点创建成功, Path: "
-                    + this.zk.create(path,
-                    data.getBytes(),
-                    ZooDefs.Ids.OPEN_ACL_UNSAFE,
-                    CreateMode.PERSISTENT)
-                    + ", content: " + data);
-        }
-        return true;
-    }
-
-    /**
      * 创建ZK连接
      *
      * @param connectString  ZK服务器地址列表
@@ -121,6 +104,25 @@ public class DistributedLock implements Watcher {
         //CountDownLatch
         connectedSemaphore.await();
         System.out.println("2、创建连接后，等待结束；理应执行3、");
+    }
+
+    /**
+     * 创建节点
+     *
+     * @param path 节点path
+     * @param data 初始数据内容
+     * @return
+     */
+    public boolean createSuperPath(String path, String data, boolean needWatch) throws KeeperException, InterruptedException {
+        if (zk.exists(path, needWatch) == null) {
+            LOG.warn(LOG_PREFIX_OF_THREAD + "节点创建成功, Path: "
+                + this.zk.create(path,
+                data.getBytes(),
+                ZooDefs.Ids.OPEN_ACL_UNSAFE,
+                CreateMode.PERSISTENT)
+                + ", content: " + data);
+        }
+        return true;
     }
 
     /**
